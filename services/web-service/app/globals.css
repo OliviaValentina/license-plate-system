@@ -1,0 +1,136 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: light;
+
+  /* chocolate colours */
+  --page: #f7ead6; 
+  --surface-1: #fffaf2; 
+  --chocolate: #f3d9a4; 
+  --chocolate-ink: #3b2113; 
+  --text-primary: #3b2113;
+  --text-secondary: #6b4a30;
+  --text-muted: #9c7e64;
+  --grid-line: #e7d3b3;
+  --axis-line: #c9a97c;
+  --border: rgba(59, 33, 19, 0.16);
+
+  --accent: #e8792c;
+  --accent-ink: #ffffff;
+  --brand-pink: #d6336c;
+  --brand-plum: #7c4fae;
+  --brand-teal: #1a9e8f;
+  --brand-green: #4c8c4a;
+
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --series-4: #eda100;
+  --series-5: #e87ba4;
+  --series-6: #008300;
+  --series-7: #4a3aa7;
+  --series-8: #e34948;
+
+  --status-good: #0ca30c;
+  --status-warning: #fab219;
+  --status-serious: #ec835a;
+  --status-critical: #d03b3b;
+
+  /* Season colors for the monthly-trends chart*/
+  --season-winter: #2a78d6;
+  --season-spring: #1a9e6e;
+  --season-summer: #d99a1f;
+  --season-fall: #c1432b;
+}
+
+@theme inline {
+  --color-page: var(--page);
+  --color-surface-1: var(--surface-1);
+  --font-sans: var(--font-geist-sans);
+  --font-display: var(--font-fredoka);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --page: #24140b;
+    --surface-1: #2f1c10;
+    --chocolate: #1a0f08;
+    --chocolate-ink: #f5e6d3;
+    --text-primary: #f5e9da;
+    --text-secondary: #d8b89a;
+    --text-muted: #a9836a;
+    --grid-line: #3d2717;
+    --axis-line: #5a3a22;
+    --border: rgba(245, 233, 218, 0.14);
+
+    --accent: #f0954f;
+    --accent-ink: #2a1608;
+    --brand-pink: #e8709a;
+    --brand-plum: #a48ade;
+    --brand-teal: #3dc0af;
+    --brand-green: #7cbb6f;
+
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --series-4: #c98500;
+    --series-5: #d55181;
+    --series-6: #008300;
+    --series-7: #9085e9;
+    --series-8: #e66767;
+
+    --season-winter: #5390de;
+    --season-spring: #2bb98a;
+    --season-summer: #e0a83c;
+    --season-fall: #e06848;
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --page: #24140b;
+  --surface-1: #2f1c10;
+  --chocolate: #1a0f08;
+  --chocolate-ink: #f5e6d3;
+  --text-primary: #f5e9da;
+  --text-secondary: #d8b89a;
+  --text-muted: #a9836a;
+  --grid-line: #3d2717;
+  --axis-line: #5a3a22;
+  --border: rgba(245, 233, 218, 0.14);
+
+  --accent: #f0954f;
+  --accent-ink: #2a1608;
+  --brand-pink: #e8709a;
+  --brand-plum: #a48ade;
+  --brand-teal: #3dc0af;
+  --brand-green: #7cbb6f;
+
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --series-4: #c98500;
+  --series-5: #d55181;
+  --series-6: #008300;
+  --series-7: #9085e9;
+  --series-8: #e66767;
+
+  --season-winter: #5390de;
+  --season-spring: #2bb98a;
+  --season-summer: #e0a83c;
+  --season-fall: #e06848;
+}
+
+body {
+  background: var(--page);
+  color: var(--text-primary);
+  font-family: var(--font-sans, system-ui), -apple-system, "Segoe UI", sans-serif;
+}
+
+.font-display {
+  font-family: var(--font-display, var(--font-sans)), system-ui, sans-serif;
+}
