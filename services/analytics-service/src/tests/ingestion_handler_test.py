@@ -168,6 +168,21 @@ def test_get_monthly_trends_assigns_season(db: Session, admin_db: AdminDb):
     assert after['visit_count'] == before_count + 1
 
 
+def test_get_monthly_trends_filters_by_date_range(db: Session, admin_db: AdminDb):
+    """Rows outside the given [start_date, end_date] are excluded from monthly trends."""
+    in_range = datetime(2019, 6, 10, 10, 0, tzinfo=timezone.utc)
+    out_of_range = datetime(2019, 7, 10, 10, 0, tzinfo=timezone.utc)
+
+    _insert_observation(admin_db, PLATE_A, in_range, 'FRONT')
+    _insert_observation(admin_db, PLATE_B, out_of_range, 'FRONT')
+
+    rows = ingestion_handler.get_monthly_trends(
+        db, include_synthetic=True, start_date=date(2019, 6, 10), end_date=date(2019, 6, 10)
+    )
+
+    assert [(r['year'], r['month'], r['visit_count']) for r in rows] == [(2019, 6, 1)]
+
+
 def test_include_synthetic_false_excludes_synthetic_rows(db: Session, admin_db: AdminDb):
     """Setting include_synthetic=False excludes rows from synthetic_vehicle_observations."""
     entry = datetime(2026, 4, 14, 9, 0, tzinfo=timezone.utc)

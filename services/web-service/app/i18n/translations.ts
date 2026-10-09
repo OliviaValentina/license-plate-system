@@ -27,6 +27,7 @@ export interface Dictionary {
       last7: string;
       last30: string;
       last90: string;
+      lastYear: string;
       allTime: string;
       includeSynthetic: string;
       allVehicleTypes: string;
@@ -106,6 +107,7 @@ export const translations: Record<"en" | "de", Dictionary> = {
         last7: "Last 7 days",
         last30: "Last 30 days",
         last90: "Last 90 days",
+        lastYear: "Last year",
         allTime: "All time",
         includeSynthetic: "Include synthetic demo data",
         allVehicleTypes: "All vehicle types",
@@ -197,6 +199,7 @@ export const translations: Record<"en" | "de", Dictionary> = {
         last7: "Letzte 7 Tage",
         last30: "Letzte 30 Tage",
         last90: "Letzte 90 Tage",
+        lastYear: "Letztes Jahr",
         allTime: "Gesamter Zeitraum",
         includeSynthetic: "Synthetische Demodaten einbeziehen",
         allVehicleTypes: "Alle Fahrzeugtypen",

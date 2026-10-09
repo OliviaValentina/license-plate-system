@@ -28,6 +28,7 @@ export function Filters({
     { label: f.last7, days: 7 },
     { label: f.last30, days: 30 },
     { label: f.last90, days: 90 },
+    { label: f.lastYear, days: 365 },
     { label: f.allTime, days: null },
   ];
 

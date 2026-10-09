@@ -213,6 +213,8 @@ def get_rush_hour(
 def get_monthly_trends(
     db: Session,
     include_synthetic: bool,
+    start_date: date | None = None,
+    end_date: date | None = None,
     vehicle_type: str | None = None,
     country_code: str | None = None,
     municipality: str | None = None,
@@ -222,6 +224,8 @@ def get_monthly_trends(
     Args:
         db (Session): db session
         include_synthetic (bool): whether to include synthetic demo data
+        start_date (date | None): if given, restrict to visits on or after this date
+        end_date (date | None): if given, restrict to visits on or before this date
         vehicle_type (str | None): if given, restrict to this vehicle type
         country_code (str | None): if given, restrict to this plate country
         municipality (str | None): if given, restrict to this municipality code
@@ -239,8 +243,17 @@ def get_monthly_trends(
         (month.in_([6, 7, 8]), 'summer'),
         else_='autumn',
     )
+    visit_date = cast(obs.c.timestamp, Date)
 
     conditions = [obs.c.orientation == ORIENTATION_FRONT]
+
+    if start_date is not None and end_date is not None and start_date > end_date:
+        start_date, end_date = end_date, start_date
+
+    if start_date is not None:
+        conditions.append(visit_date >= start_date)
+    if end_date is not None:
+        conditions.append(visit_date <= end_date)
     if vehicle_type is not None:
         conditions.append(obs.c.vehicle_type == vehicle_type)
     if country_code is not None:

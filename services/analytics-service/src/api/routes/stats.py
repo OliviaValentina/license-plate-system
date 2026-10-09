@@ -119,6 +119,8 @@ def get_rush_hour(
 def get_monthly_trends(
     db: SessionDep,
     include_synthetic: bool = True,
+    start_date: date | None = None,
+    end_date: date | None = None,
     vehicle_type: str | None = None,
     country_code: str | None = None,
     municipality: str | None = None,
@@ -129,6 +131,10 @@ def get_monthly_trends(
     Args:
         db (SessionDep): Database session dependency
         include_synthetic (bool): whether to include synthetic demo data
+        start_date (date | None): if given together with end_date, computes live over
+            that date range instead of reading the periodically-refreshed cache
+        end_date (date | None): if given together with start_date, computes live over
+            that date range instead of reading the periodically-refreshed cache
         vehicle_type (str | None): if given, computes live, restricted to this vehicle type
         country_code (str | None): if given, computes live, restricted to this plate country
         municipality (str | None): if given, computes live, restricted to this municipality code
@@ -137,10 +143,12 @@ def get_monthly_trends(
         seasonal_schemas.MonthlyTrendsResponse: the monthly/seasonal visit-count series
     """
     try:
-        if any(v is not None for v in (vehicle_type, country_code, municipality)):
+        if any(v is not None for v in (start_date, end_date, vehicle_type, country_code, municipality)):
             rows = ingestion_handler.get_monthly_trends(
                 db,
                 include_synthetic,
+                start_date=start_date,
+                end_date=end_date,
                 vehicle_type=vehicle_type,
                 country_code=country_code,
                 municipality=municipality,
