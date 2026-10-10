@@ -5,6 +5,9 @@ FROM ghcr.io/astral-sh/uv:python3.13-bookworm-slim
 # Install the project into `/app`
 WORKDIR /app
 
+# Install curl for health checks
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
 # Enable bytecode compilation
 ENV UV_COMPILE_BYTECODE=1
 
@@ -33,6 +36,7 @@ ENV PYTHONPATH="/app/"
 # Reset the entrypoint, don't invoke `uv`
 ENTRYPOINT []
 
-CMD ["python", "main.py"]
+# Starts uvicorn server
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "5000"]
 
 EXPOSE 5000

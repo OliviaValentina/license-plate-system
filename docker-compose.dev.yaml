@@ -14,6 +14,7 @@ services:
       DB_USER: ${ANALYTICS_DB_USER}
       DB_PASSWORD: ${ANALYTICS_DB_PASSWORD}
       ANALYTICS_SCHEMA: ${ANALYTICS_SCHEMA}
+      DATA_COLLECTION_SCHEMA: ${DATA_COLLECTION_SCHEMA}
       LOG_LEVEL: ${LOG_LEVEL:-DEBUG}
     depends_on:
       db-prestart:
@@ -86,6 +87,8 @@ services:
       LOG_LEVEL: ${LOG_LEVEL:-DEBUG}
       ANALYTICS_SERVICE_URL: ${ANALYTICS_SERVICE_URL}
       SENDER_ADDRESS: ${SENDER_ADDRESS}
+      SMTP_RELAY_ADDRESS: ${SMTP_RELAY_ADDRESS}
+      NOTIFICATION_API_KEY: ${NOTIFICATION_API_KEY}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
       interval: 5s

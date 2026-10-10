@@ -49,6 +49,7 @@ nav:
     - Dev Setup: development/setup.md
     - Docker Commands: development/docker-commands.md
     - Running Commands: development/running-commands.md
+    - Service Development: development/service-development.md
     - Troubleshooting: development/troubleshooting.md
   - Operations:
     - Backups: operations/backups.md
@@ -62,11 +63,16 @@ nav:
     - Scripts: reference/scripts.md
     - Docker Compose: reference/docker-compose.md
     - API: reference/api.md
+    - Data Collection Flow: reference/data-collection-flow.md
 
 markdown_extensions:
   - admonition
   - pymdownx.details
-  - pymdownx.superfences
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.highlight:
       anchor_linenums: true
   - pymdownx.inlinehilite
@@ -80,5 +86,5 @@ markdown_extensions:
 plugins:
   - search
 
-
-
+extra_javascript:
+  - javascripts/mermaid.js

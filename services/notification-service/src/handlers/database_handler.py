@@ -106,14 +106,10 @@ def create_new_entry(db: Session, entry: UserPreferencesCreate) -> UserPreferenc
     Returns:
         UserPreferences: returns the added object
     """
-    entry.name = str(entry.name).lower()
     entry.email = str(entry.email).lower()
 
-    if get_entry_by_name(db=db, name=entry.name):
-        raise DuplicateEntryError('An entry with the same name already exists in the database')
-
     if get_entry_by_email(db=db, email=entry.email):
-        raise DuplicateEntryError('An entry with the same name already exists in the database')
+        raise DuplicateEntryError('An entry with the same email already exists in the database')
 
     db_entry = UserPreferences(
         name=entry.name,
@@ -150,24 +146,98 @@ def update_entry(db: Session, entry: UserPreferencesUpdate, entry_id: int) -> Us
     if not db_entry:
         raise MissingEntryError('No entry with the specified id found')
 
-    entry.name = str(entry.name).lower()
-    entry.email = str(entry.email).lower()
+    update_data = entry.model_dump(exclude_unset=True)
 
-    if get_entry_by_name(db=db, name=entry.name) and db_entry.name != entry.name:
-        raise DuplicateEntryError('An entry with the same name already exists in the database')
+    if 'email' in update_data and update_data['email']:
+        update_data['email'] = str(update_data['email']).lower()
+        if get_entry_by_email(db=db, email=update_data['email']) and db_entry.email != update_data['email']:
+            raise DuplicateEntryError('An entry with the same email already exists in the database')
 
-    if get_entry_by_email(db=db, email=entry.email) and db_entry.email != entry.email:
-        raise DuplicateEntryError('An entry with the same name already exists in the database')
+    for key, value in update_data.items():
+        setattr(db_entry, key, value)
 
     try:
-        update_data = entry.model_dump(exclude_unset=True)
-
-        for key, value in update_data.items():
-            setattr(db_entry, key, value)
-
         db.commit()
         db.refresh(db_entry)
         return db_entry
     except SQLAlchemyError as e:
         db.rollback()
         raise DatabaseIntegrityError(f'Failed to update user entry: {e}') from e
+
+
+def delete_entry(db: Session, entry_id: int) -> bool:
+    """Delete a user preferences entry
+
+    Args:
+        db (Session): db session
+        entry_id (int): the id of the entry to delete
+
+    Raises:
+        MissingEntryError: raised if no entry with the specified id exists
+        DatabaseIntegrityError: raised if the delete fails
+
+    Returns:
+        bool: True if deletion was successful
+    """
+    db_entry = get_entry(db=db, entry_id=entry_id)
+    if not db_entry:
+        raise MissingEntryError('No entry with the specified id found')
+
+    try:
+        db.delete(db_entry)
+        db.commit()
+        return True
+    except SQLAlchemyError as e:
+        db.rollback()
+        raise DatabaseIntegrityError(f'Failed to delete user entry: {e}') from e
+
+
+def get_entries_by_preference(
+    db: Session, receive_alerts: bool | None = None, receive_updates: bool | None = None
+) -> list[UserPreferences]:
+    """Get user preferences filtered by notification preferences
+
+    Args:
+        db (Session): db session
+        receive_alerts (bool | None): filter by receive_alerts preference
+        receive_updates (bool | None): filter by receive_updates preference
+
+    Raises:
+        DatabaseQueryError: raised if the query fails
+
+    Returns:
+        list[UserPreferences]: list of matching entries
+    """
+    try:
+        stmt = select(UserPreferences)
+
+        if receive_alerts is not None:
+            stmt = stmt.where(UserPreferences.receive_alerts == receive_alerts)
+
+        if receive_updates is not None:
+            stmt = stmt.where(UserPreferences.receive_updates == receive_updates)
+
+        return db.execute(stmt).scalars().all()
+    except SQLAlchemyError as e:
+        raise DatabaseQueryError(f'Failed to fetch user preferences by preference: {e}') from e
+
+
+def get_entries_by_names(db: Session, names: list[str]) -> list[UserPreferences]:
+    """Get user preferences for specific users by name
+
+    Args:
+        db (Session): db session
+        names (list[str]): list of user names to find
+
+    Raises:
+        DatabaseQueryError: raised if the query fails
+
+    Returns:
+        list[UserPreferences]: list of matching entries
+    """
+    try:
+        # Normalize names to lowercase for comparison
+        stmt = select(UserPreferences).where(UserPreferences.name.in_(names))
+        return db.execute(stmt).scalars().all()
+    except SQLAlchemyError as e:
+        raise DatabaseQueryError(f'Failed to fetch user preferences by names: {e}') from e

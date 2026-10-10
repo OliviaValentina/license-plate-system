@@ -11,10 +11,10 @@ from alembic.config import Config
 # Add the /app directory to the Python path
 sys.path.insert(0, '/app')
 
-# Import Base objecz
+# Import Base object
 from data_collection.src.models.base import IngestionBase
 from notification.src.models.base import NotificationBase
-# from analytics.src.models.base import AnalyticsBase
+from analytics.src.models.base import AnalyticsBase
 
 config: Config = context.config
 
@@ -24,7 +24,7 @@ if config.config_file_name is not None:
 target_metadata = [
     IngestionBase.metadata,
     NotificationBase.metadata,
-    # AnalyticsBase.metadata,
+    AnalyticsBase.metadata,
 ]
 
 

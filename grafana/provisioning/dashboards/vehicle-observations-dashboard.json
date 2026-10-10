@@ -83,6 +83,7 @@
         "y": 0
       },
       "id": 1,
+      "interval": "1h",
       "options": {
         "legend": {
           "calcs": [
@@ -108,7 +109,7 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT\n  date_trunc('hour', timestamp) AS time,\n  COUNT(*) AS \"Observations\"\nFROM ingestion_schema.vehicle_observations\nWHERE $__timeFilter(timestamp)\nGROUP BY time\nORDER BY time",
+          "rawSql": "WITH obs AS (\n  SELECT id, timestamp, plate_hash, plate_score, country_code, municipality, vehicle_type, make, model, color, orientation, 'real' AS source\n  FROM ingestion_schema.vehicle_observations\n  UNION ALL\n  SELECT id, timestamp, plate_hash, plate_score, country_code, municipality, vehicle_type, make, model, color, orientation, 'synthetic' AS source\n  FROM ingestion_schema.synthetic_vehicle_observations\n)\nSELECT\n  date_trunc('hour', timestamp) AS time,\n  COUNT(*) AS \"Observations\"\nFROM obs\nWHERE source IN (${data_source:sqlstring}) AND $__timeFilter(timestamp)\nGROUP BY time\nORDER BY time",
           "refId": "A",
           "sql": {
             "columns": [
@@ -129,7 +130,7 @@
           }
         }
       ],
-      "title": "Vehicle Observations Over Time",
+      "title": "Unique Vehicles Over Time",
       "type": "timeseries"
     },
     {
@@ -187,11 +188,11 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT COUNT(*) as \"Total Observations\"\nFROM ingestion_schema.vehicle_observations\nWHERE $__timeFilter(timestamp)",
+          "rawSql": "WITH obs AS (\n  SELECT id, timestamp, plate_hash, plate_score, country_code, municipality, vehicle_type, make, model, color, orientation, 'real' AS source\n  FROM ingestion_schema.vehicle_observations\n  UNION ALL\n  SELECT id, timestamp, plate_hash, plate_score, country_code, municipality, vehicle_type, make, model, color, orientation, 'synthetic' AS source\n  FROM ingestion_schema.synthetic_vehicle_observations\n)\nSELECT COUNT(*) as \"Total Observations\"\nFROM obs\nWHERE source IN (${data_source:sqlstring}) AND $__timeFilter(timestamp)",
           "refId": "A"
         }
       ],
-      "title": "Total Observations",
+      "title": "Unique Vehicles in Range",
       "type": "stat"
     },
     {
@@ -249,11 +250,11 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT COUNT(*) as \"Today's Observations\"\nFROM ingestion_schema.vehicle_observations\nWHERE DATE(timestamp) = CURRENT_DATE AND $__timeFilter(timestamp)",
+          "rawSql": "WITH obs AS (\n  SELECT id, timestamp, plate_hash, plate_score, country_code, municipality, vehicle_type, make, model, color, orientation, 'real' AS source\n  FROM ingestion_schema.vehicle_observations\n  UNION ALL\n  SELECT id, timestamp, plate_hash, plate_score, country_code, municipality, vehicle_type, make, model, color, orientation, 'synthetic' AS source\n  FROM ingestion_schema.synthetic_vehicle_observations\n)\nSELECT COUNT(*) as \"Today's Observations\"\nFROM obs\nWHERE source IN (${data_source:sqlstring}) AND DATE(timestamp) = CURRENT_DATE AND $__timeFilter(timestamp)",
           "refId": "A"
         }
       ],
-      "title": "Today's Observations",
+      "title": "Unique Vehicles Today",
       "type": "stat"
     },
     {
@@ -311,11 +312,11 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT ROUND(AVG(daily_count)::numeric, 1) as \"Daily Average\"\nFROM (\n  SELECT DATE(timestamp) as day, COUNT(*) as daily_count\n  FROM ingestion_schema.vehicle_observations\n  WHERE $__timeFilter(timestamp)\n  GROUP BY day\n) t",
+          "rawSql": "WITH obs AS (\n  SELECT id, timestamp, plate_hash, plate_score, country_code, municipality, vehicle_type, make, model, color, orientation, 'real' AS source\n  FROM ingestion_schema.vehicle_observations\n  UNION ALL\n  SELECT id, timestamp, plate_hash, plate_score, country_code, municipality, vehicle_type, make, model, color, orientation, 'synthetic' AS source\n  FROM ingestion_schema.synthetic_vehicle_observations\n)\nSELECT ROUND(AVG(daily_count)::numeric, 1) as \"Daily Average\"\nFROM (\n  SELECT DATE(timestamp) as day, COUNT(*) as daily_count\n  FROM obs\n  WHERE source IN (${data_source:sqlstring}) AND $__timeFilter(timestamp)\n  GROUP BY day\n) t",
           "refId": "A"
         }
       ],
-      "title": "Daily Average",
+      "title": "Daily Average (Unique)",
       "type": "stat"
     },
     {
@@ -373,11 +374,259 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT COUNT(DISTINCT country_code) as \"Countries\"\nFROM ingestion_schema.vehicle_observations\nWHERE $__timeFilter(timestamp) AND country_code IS NOT NULL",
+          "rawSql": "WITH obs AS (\n  SELECT id, timestamp, plate_hash, plate_score, country_code, municipality, vehicle_type, make, model, color, orientation, 'real' AS source\n  FROM ingestion_schema.vehicle_observations\n  UNION ALL\n  SELECT id, timestamp, plate_hash, plate_score, country_code, municipality, vehicle_type, make, model, color, orientation, 'synthetic' AS source\n  FROM ingestion_schema.synthetic_vehicle_observations\n)\nSELECT COUNT(DISTINCT country_code) as \"Countries\"\nFROM obs\nWHERE source IN (${data_source:sqlstring}) AND $__timeFilter(timestamp) AND country_code IS NOT NULL",
           "refId": "A"
         }
       ],
       "title": "Unique Countries",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL - Ingestion Schema"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 16
+      },
+      "id": 14,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL - Ingestion Schema"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT COUNT(*) as \"Total Observations\"\nFROM ingestion_schema.vehicle_observations\nWHERE $__timeFilter(timestamp)\n  AND (vehicle_type IN (${vehicle_type:singlequote}) OR '${vehicle_type:raw}' = 'All')",
+          "refId": "A"
+        }
+      ],
+      "title": "Total Observations in Range",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL - Ingestion Schema"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 16
+      },
+      "id": 15,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL - Ingestion Schema"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT COUNT(*) as \"Today's Observations\"\nFROM ingestion_schema.vehicle_observations\nWHERE DATE(timestamp) = CURRENT_DATE\n  AND (vehicle_type IN (${vehicle_type:singlequote}) OR '${vehicle_type:raw}' = 'All')",
+          "refId": "A"
+        }
+      ],
+      "title": "Total Observations Today",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL - Ingestion Schema"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 16
+      },
+      "id": 16,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL - Ingestion Schema"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT ROUND(AVG(daily_count)::numeric, 1) as \"Daily Avg Observations\"\nFROM (\n  SELECT DATE(timestamp) as day, COUNT(*) as daily_count\n  FROM ingestion_schema.vehicle_observations\n  WHERE $__timeFilter(timestamp)\n    AND (vehicle_type IN (${vehicle_type:singlequote}) OR '${vehicle_type:raw}' = 'All')\n  GROUP BY day\n) t",
+          "refId": "A"
+        }
+      ],
+      "title": "Daily Average (All Observations)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL - Ingestion Schema"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 16
+      },
+      "id": 17,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL - Ingestion Schema"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT COUNT(DISTINCT vehicle_type) as \"Vehicle Types Seen\"\nFROM ingestion_schema.vehicle_observations\nWHERE $__timeFilter(timestamp)\n  AND (vehicle_type IN (${vehicle_type:singlequote}) OR '${vehicle_type:raw}' = 'All')",
+          "refId": "A"
+        }
+      ],
+      "title": "Vehicle Types Seen",
       "type": "stat"
     },
     {
@@ -405,7 +654,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 16
+        "y": 20
       },
       "id": 6,
       "transformations": [
@@ -452,11 +701,11 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT \n  UPPER(country_code) as country,\n  COUNT(*) as count\nFROM ingestion_schema.vehicle_observations\nWHERE $__timeFilter(timestamp) AND country_code IS NOT NULL\nGROUP BY country\nORDER BY count DESC\nLIMIT 10",
+          "rawSql": "WITH obs AS (\n  SELECT id, timestamp, plate_hash, plate_score, country_code, municipality, vehicle_type, make, model, color, orientation, 'real' AS source\n  FROM ingestion_schema.vehicle_observations\n  UNION ALL\n  SELECT id, timestamp, plate_hash, plate_score, country_code, municipality, vehicle_type, make, model, color, orientation, 'synthetic' AS source\n  FROM ingestion_schema.synthetic_vehicle_observations\n)\nSELECT \n  UPPER(country_code) as country,\n  COUNT(*) as count\nFROM obs\nWHERE source IN (${data_source:sqlstring}) AND $__timeFilter(timestamp) AND country_code IS NOT NULL\nGROUP BY country\nORDER BY count DESC\nLIMIT 10",
           "refId": "A"
         }
       ],
-      "title": "Top Countries",
+      "title": "Top Countries for Filtered Type",
       "type": "piechart"
     },
     {
@@ -506,7 +755,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 16
+        "y": 20
       },
       "id": 7,
       "options": {
@@ -539,11 +788,100 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT \n  COALESCE(vehicle_type, 'Unknown') as vehicle_type,\n  COUNT(*) as count\nFROM ingestion_schema.vehicle_observations\nWHERE $__timeFilter(timestamp)\nGROUP BY vehicle_type\nORDER BY count DESC",
+          "rawSql": "WITH obs AS (\n  SELECT id, timestamp, plate_hash, plate_score, country_code, municipality, vehicle_type, make, model, color, orientation, 'real' AS source\n  FROM ingestion_schema.vehicle_observations\n  UNION ALL\n  SELECT id, timestamp, plate_hash, plate_score, country_code, municipality, vehicle_type, make, model, color, orientation, 'synthetic' AS source\n  FROM ingestion_schema.synthetic_vehicle_observations\n)\nSELECT \n  COALESCE(vehicle_type, 'Unknown') as vehicle_type,\n  COUNT(*) as count\nFROM obs\nWHERE source IN (${data_source:sqlstring}) AND $__timeFilter(timestamp)\nGROUP BY vehicle_type\nORDER BY count DESC",
           "refId": "A"
         }
       ],
-      "title": "Vehicle Type Distribution",
+      "title": "Global Vehicle Type Distribution",
+      "type": "barchart"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL - Ingestion Schema"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 20
+      },
+      "id": 13,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL - Ingestion Schema"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  EXTRACT(HOUR FROM timestamp)::TEXT as \"Hour of Day\",\n  COUNT(*) as \"Observations\"\nFROM ingestion_schema.vehicle_observations\nWHERE $__timeFilter(timestamp)\n  AND (vehicle_type IN (${vehicle_type:singlequote}) OR '${vehicle_type:raw}' = 'All')\nGROUP BY 1\nORDER BY 1",
+          "refId": "A"
+        }
+      ],
+      "title": "Traffic Density by Hour",
       "type": "barchart"
     },
     {
@@ -580,7 +918,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 24
+        "y": 28
       },
       "id": 9,
       "options": {
@@ -605,7 +943,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT \n  COALESCE(make, 'Unknown') as \"Make\",\n  COUNT(*) as \"Count\"\nFROM ingestion_schema.vehicle_observations\nWHERE $__timeFilter(timestamp)\nGROUP BY make\nORDER BY \"Count\" DESC\nLIMIT 15",
+          "rawSql": "WITH obs AS (\n  SELECT id, timestamp, plate_hash, plate_score, country_code, municipality, vehicle_type, make, model, color, orientation, 'real' AS source\n  FROM ingestion_schema.vehicle_observations\n  UNION ALL\n  SELECT id, timestamp, plate_hash, plate_score, country_code, municipality, vehicle_type, make, model, color, orientation, 'synthetic' AS source\n  FROM ingestion_schema.synthetic_vehicle_observations\n)\nSELECT \n  COALESCE(make, 'Unknown') as \"Make\",\n  COUNT(*) as \"Count\"\nFROM obs\nWHERE source IN (${data_source:sqlstring}) AND $__timeFilter(timestamp)\nGROUP BY make\nORDER BY \"Count\" DESC\nLIMIT 15",
           "refId": "A"
         }
       ],
@@ -646,7 +984,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 24
+        "y": 28
       },
       "id": 10,
       "options": {
@@ -671,7 +1009,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT \n  COALESCE(model, 'Unknown') as \"Model\",\n  COUNT(*) as \"Count\"\nFROM ingestion_schema.vehicle_observations\nWHERE $__timeFilter(timestamp)\nGROUP BY model\nORDER BY \"Count\" DESC\nLIMIT 15",
+          "rawSql": "WITH obs AS (\n  SELECT id, timestamp, plate_hash, plate_score, country_code, municipality, vehicle_type, make, model, color, orientation, 'real' AS source\n  FROM ingestion_schema.vehicle_observations\n  UNION ALL\n  SELECT id, timestamp, plate_hash, plate_score, country_code, municipality, vehicle_type, make, model, color, orientation, 'synthetic' AS source\n  FROM ingestion_schema.synthetic_vehicle_observations\n)\nSELECT \n  COALESCE(model, 'Unknown') as \"Model\",\n  COUNT(*) as \"Count\"\nFROM obs\nWHERE source IN (${data_source:sqlstring}) AND $__timeFilter(timestamp)\nGROUP BY model\nORDER BY \"Count\" DESC\nLIMIT 15",
           "refId": "A"
         }
       ],
@@ -725,7 +1063,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 24
+        "y": 28
       },
       "id": 11,
       "options": {
@@ -758,7 +1096,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT \n  COALESCE(color, 'Unknown') as color,\n  COUNT(*) as count\nFROM ingestion_schema.vehicle_observations\nWHERE $__timeFilter(timestamp)\nGROUP BY color\nORDER BY count DESC\nLIMIT 10",
+          "rawSql": "WITH obs AS (\n  SELECT id, timestamp, plate_hash, plate_score, country_code, municipality, vehicle_type, make, model, color, orientation, 'real' AS source\n  FROM ingestion_schema.vehicle_observations\n  UNION ALL\n  SELECT id, timestamp, plate_hash, plate_score, country_code, municipality, vehicle_type, make, model, color, orientation, 'synthetic' AS source\n  FROM ingestion_schema.synthetic_vehicle_observations\n)\nSELECT \n  COALESCE(color, 'Unknown') as color,\n  COUNT(*) as count\nFROM obs\nWHERE source IN (${data_source:sqlstring}) AND $__timeFilter(timestamp)\nGROUP BY color\nORDER BY count DESC\nLIMIT 10",
           "refId": "A"
         }
       ],
@@ -821,7 +1159,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 32
+        "y": 36
       },
       "id": 12,
       "options": {
@@ -846,7 +1184,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT \n  COALESCE(municipality, 'Not Available') as \"Municipality\",\n  COUNT(*) as \"Count\"\nFROM ingestion_schema.vehicle_observations\nWHERE $__timeFilter(timestamp) AND country_code = 'at'\nGROUP BY municipality\nORDER BY \"Count\" DESC\nLIMIT 20",
+          "rawSql": "WITH obs AS (\n  SELECT id, timestamp, plate_hash, plate_score, country_code, municipality, vehicle_type, make, model, color, orientation, 'real' AS source\n  FROM ingestion_schema.vehicle_observations\n  UNION ALL\n  SELECT id, timestamp, plate_hash, plate_score, country_code, municipality, vehicle_type, make, model, color, orientation, 'synthetic' AS source\n  FROM ingestion_schema.synthetic_vehicle_observations\n)\nSELECT \n  COALESCE(municipality, 'Not Available') as \"Municipality\",\n  COUNT(*) as \"Count\"\nFROM obs\nWHERE source IN (${data_source:sqlstring}) AND $__timeFilter(timestamp) AND country_code = 'at'\nGROUP BY municipality\nORDER BY \"Count\" DESC\nLIMIT 20",
           "refId": "A"
         }
       ],
@@ -935,7 +1273,7 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT\n  date_trunc('hour', timestamp) AS time,\n  EXTRACT(HOUR FROM timestamp) as hour,\n  COUNT(*) as \"Observations\"\nFROM ingestion_schema.vehicle_observations\nWHERE $__timeFilter(timestamp)\nGROUP BY time, hour\nORDER BY time",
+          "rawSql": "WITH obs AS (\n  SELECT id, timestamp, plate_hash, plate_score, country_code, municipality, vehicle_type, make, model, color, orientation, 'real' AS source\n  FROM ingestion_schema.vehicle_observations\n  UNION ALL\n  SELECT id, timestamp, plate_hash, plate_score, country_code, municipality, vehicle_type, make, model, color, orientation, 'synthetic' AS source\n  FROM ingestion_schema.synthetic_vehicle_observations\n)\nSELECT\n  date_trunc('hour', timestamp) AS time,\n  EXTRACT(HOUR FROM timestamp) as hour,\n  COUNT(*) as \"Observations\"\nFROM obs\nWHERE source IN (${data_source:sqlstring}) AND $__timeFilter(timestamp)\nGROUP BY time, hour\nORDER BY time",
           "refId": "A"
         }
       ],
@@ -951,16 +1289,49 @@
     "vehicle-observations"
   ],
   "templating": {
-    "list": []
+    "list": [
+      {
+        "current": {
+          "text": [
+            "Real",
+            "Synthetic"
+          ],
+          "value": [
+            "real",
+            "synthetic"
+          ]
+        },
+        "hide": 0,
+        "includeAll": false,
+        "multi": true,
+        "name": "data_source",
+        "options": [
+          {
+            "selected": true,
+            "text": "Real",
+            "value": "real"
+          },
+          {
+            "selected": true,
+            "text": "Synthetic",
+            "value": "synthetic"
+          }
+        ],
+        "query": "Real : real, Synthetic : synthetic",
+        "queryValue": "",
+        "skipUrlSync": false,
+        "type": "custom"
+      }
+    ]
   },
   "time": {
-    "from": "2025-10-21T00:00:00.000Z",
-    "to": "2025-10-31T23:59:59.999Z"
+    "from": "now-7d",
+    "to": "now"
   },
   "timepicker": {},
   "timezone": "browser",
   "title": "Vehicle Observations Dashboard",
   "uid": "vehicle-observations",
-  "version": 1,
+  "version": 2,
   "weekStart": ""
 }

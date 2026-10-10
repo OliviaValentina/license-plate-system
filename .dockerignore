@@ -1,0 +1,7 @@
+**/.venv
+**/.ruff_cache
+**/__pycache__
+**/node_modules
+**/.git
+**/*.pyc
+**/.pytest_cache

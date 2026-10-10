@@ -1,5 +1,6 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 
+from src.api.auth import verify_api_key
 from src.db.session import SessionDep
 import src.handlers.database_handler as crud
 from src.exceptions.database_exceptions import (
@@ -11,7 +12,7 @@ from src.exceptions.database_exceptions import (
 )
 import src.schemas.user_preferences as schemas
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(verify_api_key)])
 
 
 def _raise_http_from_database_error(err: DatabaseError) -> None:
@@ -23,7 +24,9 @@ def _raise_http_from_database_error(err: DatabaseError) -> None:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(err))
 
     # Fallback for any other DatabaseError
-    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"An unexpected database error occurred: {err}")
+    raise HTTPException(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f'An unexpected database error occurred: {err}'
+    )
 
 
 @router.post('/', response_model=schemas.UserPreference)
@@ -126,5 +129,24 @@ def update_user_preferences(db: SessionDep, entry_id: int, entry: schemas.UserPr
     """
     try:
         return crud.update_entry(db=db, entry=entry, entry_id=entry_id)
+    except DatabaseError as e:
+        _raise_http_from_database_error(e)
+
+
+@router.delete('/{entry_id}', status_code=status.HTTP_204_NO_CONTENT)
+def delete_user_preferences(db: SessionDep, entry_id: int):
+    """
+    Delete user preferences by ID.
+
+    Args:
+        db (SessionDep): Database session dependency
+        entry_id (int): ID of user preferences to delete
+
+    Returns:
+        HTTP 204 No Content on success
+        HTTP 404 Not Found if user preferences not found
+    """
+    try:
+        crud.delete_entry(db=db, entry_id=entry_id)
     except DatabaseError as e:
         _raise_http_from_database_error(e)
