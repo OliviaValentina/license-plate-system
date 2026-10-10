@@ -31,6 +31,11 @@ services:
     environment:
       ACTIVE_DIRECTORY_URL: ${ACTIVE_DIRECTORY_URL}
       LOG_LEVEL: ${LOG_LEVEL:-DEBUG}
+      DOMAIN_NAME: ${DOMAIN_NAME}
+      DOMAIN_LOCAL: ${DOMAIN_LOCAL}
+      SERVER_IP: ${SERVER_IP}
+      SECRET_KEY: ${SECRET_KEY}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${AUTH_TOKEN_EXPIRE_MINUTES:-60}
     depends_on:
       db-prestart:
         condition: service_completed_successfully

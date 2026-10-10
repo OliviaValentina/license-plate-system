@@ -3,28 +3,7 @@ from datetime import datetime, timezone, timedelta
 import jwt
 from src.core.config import settings
 from src.core.ad_client import verify_login
-from src.exceptions.exceptions import TokenExpiredException
-from src.schemas.login import Token_Authenticate
 from src.logger import logger
-
-
-def authenticate_token(token):
-    """verify the credibility of a token
-
-    Args:
-        token (string): Your JWT
-
-    Returns:
-        1: Token credible
-    """
-    try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-        exp = payload["exp"]
-        if exp <= datetime.now(timezone.utc):
-            raise TokenExpiredException
-    except Exception:
-        raise Exception
-    return 1
 
 
 def new_token(username: str, password: str) -> str:
@@ -38,11 +17,11 @@ def new_token(username: str, password: str) -> str:
         str: credible input, returns new token
     """
     logger.info(username)
-    verify_login(username, password)
+    ad_username = verify_login(username.strip(), password)
     payload = {
-        "username": username,
+        "username": ad_username,
         "exp": datetime.now(timezone.utc)
-        + timedelta(minutes=settings.ACCESS_TOKEN_EPIRE_MINUTES),
+        + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
     }
     token = jwt.encode(payload, settings.SECRET_KEY, settings.ALGORITHM)
     return token

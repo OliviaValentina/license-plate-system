@@ -2,6 +2,7 @@ export interface Dictionary {
   nav: {
     home: string;
     analytics: string;
+    internal: string;
   };
   home: {
     eyebrow: string;
@@ -71,6 +72,28 @@ export interface Dictionary {
       autumn: string;
     };
   };
+  auth: {
+    menuLogin: string;
+    menuLogout: string;
+    signedInAs: string;
+    title: string;
+    subtitle: string;
+    username: string;
+    usernameHint: string;
+    password: string;
+    submit: string;
+    submitting: string;
+    invalidCredentials: string;
+    unavailable: string;
+    alreadyLoggedIn: string;
+  };
+  internal: {
+    eyebrow: string;
+    title: string;
+    subtitle: string;
+    welcome: string;
+    cards: { title: string; body: string }[];
+  };
 }
 
 export const translations: Record<"en" | "de", Dictionary> = {
@@ -78,6 +101,7 @@ export const translations: Record<"en" | "de", Dictionary> = {
     nav: {
       home: "Home",
       analytics: "Analytics",
+      internal: "Internal",
     },
     home: {
       eyebrow: "Parking Lot Intelligence",
@@ -164,11 +188,38 @@ export const translations: Record<"en" | "de", Dictionary> = {
         autumn: "Autumn",
       },
     },
+    auth: {
+      menuLogin: "Log in",
+      menuLogout: "Log out",
+      signedInAs: "Signed in as",
+      title: "Log in",
+      subtitle: "Sign in with your Zotter account.",
+      username: "Username",
+      usernameHint: "Your Windows username, without the domain.",
+      password: "Password",
+      submit: "Log in",
+      submitting: "Logging in…",
+      invalidCredentials: "Wrong username or password.",
+      unavailable: "Login is currently unavailable. Please try again later.",
+      alreadyLoggedIn: "You are already logged in.",
+    },
+    internal: {
+      eyebrow: "Staff only",
+      title: "Internal area",
+      subtitle: "This page is only visible to logged-in Zotter staff.",
+      welcome: "Welcome",
+      cards: [
+        { title: "Notifications", body: "Placeholder for managing alert rules and recipients." },
+        { title: "Data management", body: "Placeholder for exports, backups and synthetic data tools." },
+        { title: "System status", body: "Placeholder for camera and service health." },
+      ],
+    },
   },
   de: {
     nav: {
       home: "Startseite",
       analytics: "Statistiken",
+      internal: "Intern",
     },
     home: {
       eyebrow: "Parkplatz-Intelligenz",
@@ -257,6 +308,32 @@ export const translations: Record<"en" | "de", Dictionary> = {
         summer: "Sommer",
         autumn: "Herbst",
       },
+    },
+    auth: {
+      menuLogin: "Anmelden",
+      menuLogout: "Abmelden",
+      signedInAs: "Angemeldet als",
+      title: "Anmelden",
+      subtitle: "Melde dich mit deinem Zotter-Konto an.",
+      username: "Benutzername",
+      usernameHint: "Dein Windows-Benutzername, ohne Domäne.",
+      password: "Passwort",
+      submit: "Anmelden",
+      submitting: "Anmeldung läuft…",
+      invalidCredentials: "Benutzername oder Passwort ist falsch.",
+      unavailable: "Die Anmeldung ist derzeit nicht verfügbar. Bitte versuche es später erneut.",
+      alreadyLoggedIn: "Du bist bereits angemeldet.",
+    },
+    internal: {
+      eyebrow: "Nur für Mitarbeiter",
+      title: "Interner Bereich",
+      subtitle: "Diese Seite ist nur für angemeldete Zotter-Mitarbeiter sichtbar.",
+      welcome: "Willkommen",
+      cards: [
+        { title: "Benachrichtigungen", body: "Platzhalter für Alarmregeln und Empfänger." },
+        { title: "Datenverwaltung", body: "Platzhalter für Exporte, Backups und synthetische Daten." },
+        { title: "Systemstatus", body: "Platzhalter für den Zustand von Kameras und Diensten." },
+      ],
     },
   },
 };

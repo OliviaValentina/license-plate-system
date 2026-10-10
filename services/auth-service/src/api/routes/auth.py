@@ -29,7 +29,7 @@ def create_jwt(
 # @router.post("/check_token", response_model=)
 
 
-@router.post("/me", response_model=schemas.User_Return)
+@router.get("/me", response_model=schemas.User_Return)
 def my_user_data(
     user_data: CurrentUser,
 ):  # CurrentUser aus deps = Annotated[schemas.User_Return, Depends(get_current_user)] also es muss get_current_user durchgehen

@@ -11,7 +11,7 @@ from src.exceptions.exceptions import (
 )
 from src.exceptions.exception_handlers import (
     wrong_input_handler, missing_value_handler, operation_failed_handler, not_found_exception_handler,
-    division_by_zero_handler, token_expired_handler
+    division_by_zero_handler, token_expired_handler, wrong_login_data_handler
 )
 
 def cstm_generate_unique_id(route: APIRoute) -> str:
@@ -44,3 +44,4 @@ app.add_exception_handler(OperationFailedException, operation_failed_handler)
 app.add_exception_handler(NotFoundException, not_found_exception_handler)
 app.add_exception_handler(DivisionByZeroException, division_by_zero_handler)
 app.add_exception_handler(TokenExpiredException, token_expired_handler)
+app.add_exception_handler(WrongLoginDataException, wrong_login_data_handler)

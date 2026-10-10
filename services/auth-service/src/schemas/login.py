@@ -12,10 +12,6 @@ class User_Return(BaseModel):
     username: str
 
 
-class Token_Authenticate(BaseModel):
-    token: str
-
-
 class Token_Data(BaseModel):
     username: str
     exp: datetime.datetime

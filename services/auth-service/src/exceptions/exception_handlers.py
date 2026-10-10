@@ -43,13 +43,13 @@ async def wrong_input_handler(request: Request, exc: WrongInputException):
 
 async def token_expired_handler(request: Request, exc: TokenExpiredException):
     return JSONResponse(
-        status_code=400,
+        status_code=401,
         content={"detail": exc.message}
     )
 
 async def wrong_login_data_handler(request: Request, exc: WrongLoginDataException):
     return JSONResponse(
-        status_code=400,
+        status_code=401,
         content={"detail": exc.message}
     )
 

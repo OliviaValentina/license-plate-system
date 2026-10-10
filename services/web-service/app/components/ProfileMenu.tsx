@@ -1,12 +1,18 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useAuth } from "../auth/AuthContext";
 import { useLanguage } from "../i18n/LanguageContext";
 import { usePreferences } from "../preferences/PreferencesContext";
 
 export function ProfileMenu() {
   const { locale, setLocale, t } = useLanguage();
   const { includeSynthetic, setIncludeSynthetic } = usePreferences();
+  const { user, logout } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -22,6 +28,15 @@ export function ProfileMenu() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  const handleLogout = async () => {
+    setOpen(false);
+    await logout();
+    // Re-runs the server-side session check, so protected pages redirect away.
+    router.refresh();
+  };
+
+  const loginHref = pathname === "/login" ? "/login" : `/login?next=${encodeURIComponent(pathname)}`;
 
   return (
     <div className="relative" ref={containerRef}>
@@ -43,7 +58,32 @@ export function ProfileMenu() {
       </button>
 
       {open && (
-        <div className="absolute right-0 z-20 mt-2 w-48 rounded-2xl border-2 border-[var(--border)] bg-[var(--surface-1)] p-3 shadow-lg">
+        <div className="absolute right-0 z-20 mt-2 w-56 rounded-2xl border-2 border-[var(--border)] bg-[var(--surface-1)] p-3 shadow-lg">
+          <div className="mb-3 border-b-2 border-[var(--border)] pb-3">
+            {user ? (
+              <>
+                <p className="px-1 text-xs text-[var(--text-secondary)]">{t.auth.signedInAs}</p>
+                <p className="truncate px-1 text-sm font-bold text-[var(--text-primary)]">
+                  {user.username}
+                </p>
+                <button
+                  onClick={handleLogout}
+                  className="mt-2 w-full rounded-full border-2 border-[var(--border)] px-3 py-1.5 text-xs font-bold text-[var(--text-secondary)] transition-colors hover:bg-[var(--page)]"
+                >
+                  {t.auth.menuLogout}
+                </button>
+              </>
+            ) : (
+              <Link
+                href={loginHref}
+                onClick={() => setOpen(false)}
+                className="block w-full rounded-full bg-[var(--accent)] px-3 py-1.5 text-center text-xs font-bold text-white transition-opacity hover:opacity-90"
+              >
+                {t.auth.menuLogin}
+              </Link>
+            )}
+          </div>
+
           <p className="px-1 text-xs font-bold uppercase tracking-wide text-[var(--text-secondary)]">
             Language
           </p>

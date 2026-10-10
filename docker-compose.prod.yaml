@@ -25,10 +25,9 @@ services:
       LOG_LEVEL: ${LOG_LEVEL}
       DOMAIN_NAME: ${DOMAIN_NAME}
       DOMAIN_LOCAL: ${DOMAIN_LOCAL}
-      AD_USERNAME: ${AD_USERNAME}
-      PASSWORD: ${PASSWORD}
       SERVER_IP: ${SERVER_IP}
       SECRET_KEY: ${SECRET_KEY}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${AUTH_TOKEN_EXPIRE_MINUTES:-60}
     depends_on:
       db-prestart:
         condition: service_completed_successfully

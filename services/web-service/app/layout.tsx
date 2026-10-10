@@ -4,6 +4,7 @@ import "./globals.css";
 import { LanguageProvider } from "./i18n/LanguageContext";
 import { PreferencesProvider } from "./preferences/PreferencesContext";
 import { SiteHeader } from "./components/SiteHeader";
+import { AuthProvider } from "./auth/AuthContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,8 +39,10 @@ export default function RootLayout({
       >
         <LanguageProvider>
           <PreferencesProvider>
-            <SiteHeader />
-            {children}
+            <AuthProvider>
+              <SiteHeader />
+              {children}
+            </AuthProvider>
           </PreferencesProvider>
         </LanguageProvider>
       </body>

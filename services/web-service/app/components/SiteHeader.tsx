@@ -4,14 +4,17 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useLanguage } from "../i18n/LanguageContext";
 import { ProfileMenu } from "./ProfileMenu";
+import { useAuth } from "../auth/AuthContext";
 
 export function SiteHeader() {
   const { t } = useLanguage();
   const pathname = usePathname();
+  const { user } = useAuth();
 
   const links = [
     { href: "/", label: t.nav.home },
     { href: "/analytics", label: t.nav.analytics },
+    ...(user ? [{ href: "/internal", label: t.nav.internal }] : []),
   ];
 
   return (
